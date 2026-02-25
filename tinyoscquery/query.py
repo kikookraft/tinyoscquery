@@ -172,8 +172,22 @@ class OSCQueryClient(object):
                     # FIXME does this apply to all values in the value array always...? I assume it does here
                     newNode.value = []
                     break
+                elif v is None:
+                    # Handle null values from VRChat or other services
+                    newNode.value.append(None)
+                elif isinstance(v, (list, dict)):
+                    # Handle nested lists/objects from VRChat or other services
+                    newNode.value.append(v)
+                elif newNode.type_ and idx < len(newNode.type_):
+                    # Try to convert using the type if available
+                    try:
+                        newNode.value.append(newNode.type_[idx](v))
+                    except (ValueError, TypeError):
+                        # If conversion fails, store the raw value
+                        newNode.value.append(v)
                 else:
-                    newNode.value.append(newNode.type_[idx](v))
+                    # No type info or out of range, store raw value
+                    newNode.value.append(v)
 
 
         return newNode
